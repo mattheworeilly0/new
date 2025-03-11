@@ -5,6 +5,7 @@ import HeroSection from '@/components/HeroSection';
 import BenefitsSection from '@/components/BenefitsSection';
 import PricingSection from '@/components/PricingSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
+import FAQSection from '@/components/FAQSection';
 import QuoteForm from '@/components/QuoteForm';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,6 +50,7 @@ const Index = () => {
           <BenefitsSection />
           <PricingSection />
           <TestimonialsSection />
+          <FAQSection />
           <QuoteForm />
         </main>
         <Footer />
