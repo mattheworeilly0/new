@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const plans = [
   {
     name: "Basic",
-    price: "$19",
+    price: "£9.99",
     description: "Essential coverage for accidents and basic treatments.",
     features: [
       { name: "Accident Coverage", included: true },
@@ -22,7 +22,7 @@ const plans = [
   },
   {
     name: "Premium",
-    price: "$39",
+    price: "£29.99",
     description: "Comprehensive coverage for complete peace of mind.",
     features: [
       { name: "Accident Coverage", included: true },
@@ -37,7 +37,7 @@ const plans = [
   },
   {
     name: "Standard",
-    price: "$29",
+    price: "£19.99",
     description: "Balanced coverage for essential health needs.",
     features: [
       { name: "Accident Coverage", included: true },
@@ -162,16 +162,53 @@ const PricingSection = () => {
                   ))}
                 </div>
                 
-                <Link 
-                  to="#quote" 
-                  className={`block text-center py-3 px-6 rounded-full font-medium transition-all ${
-                    plan.highlight 
-                      ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm" 
-                      : "bg-white text-orange-500 border border-orange-500 hover:bg-orange-50"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={async () => {
+                      const { supabase } = await import("@/lib/supabaseClient");
+                      const { toast } = await import("@/hooks/use-toast");
+                      try {
+                        if (!supabase) {
+                          toast({ title: "Backend not ready", description: "Connect Supabase to enable checkout.", variant: "destructive" });
+                          return;
+                        }
+                        const { data, error } = await supabase.functions.invoke("create-checkout", { body: { plan: plan.name } });
+                        if (error) throw error;
+                        if (data?.url) window.open(data.url, "_blank");
+                      } catch (e: any) {
+                        toast({ title: "Subscription failed", description: e.message || "Try again.", variant: "destructive" });
+                      }
+                    }}
+                    className={`block text-center py-3 px-6 rounded-full font-medium transition-all ${
+                      plan.highlight 
+                        ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm" 
+                        : "bg-white text-orange-500 border border-orange-500 hover:bg-orange-50"
+                    }`}
+                  >
+                    Subscribe Monthly
+                  </button>
+
+                  <button 
+                    onClick={async () => {
+                      const { supabase } = await import("@/lib/supabaseClient");
+                      const { toast } = await import("@/hooks/use-toast");
+                      try {
+                        if (!supabase) {
+                          toast({ title: "Backend not ready", description: "Connect Supabase to enable checkout.", variant: "destructive" });
+                          return;
+                        }
+                        const { data, error } = await supabase.functions.invoke("create-payment", { body: { plan: plan.name } });
+                        if (error) throw error;
+                        if (data?.url) window.open(data.url, "_blank");
+                      } catch (e: any) {
+                        toast({ title: "Checkout failed", description: e.message || "Try again.", variant: "destructive" });
+                      }
+                    }}
+                    className="block text-center py-3 px-6 rounded-full font-medium transition-all bg-white text-orange-500 border border-orange-500 hover:bg-orange-50"
+                  >
+                    Buy Annual (One‑off)
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}

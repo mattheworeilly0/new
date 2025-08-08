@@ -10,6 +10,9 @@ const QuoteForm = () => {
   const [breed, setBreed] = useState("");
   const [age, setAge] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   
   const ref = useRef(null);
@@ -22,26 +25,24 @@ const QuoteForm = () => {
     }
   }, [controls, isInView]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!breed || !age || !zipCode) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill out all required fields.",
-        variant: "destructive"
-      });
+    if (!breed || !age || !zipCode || !ownerName || !email) {
+      toast({ title: "Missing Information", description: "Please fill out all required fields.", variant: "destructive" });
       return;
     }
-    
-    // Simulating form submission
-    setTimeout(() => {
-      setSubmitted(true);
-      toast({
-        title: "Quote Request Received!",
-        description: "We'll get back to you with your personalized quote shortly.",
+    try {
+      const { supabase } = await import("@/lib/supabaseClient");
+      if (!supabase) throw new Error("Supabase not configured");
+      const { error } = await supabase.functions.invoke("save-customer", {
+        body: { ownerName, email, phone, petType, breed, age, zipCode }
       });
-    }, 1000);
+      if (error) throw error;
+      setSubmitted(true);
+      toast({ title: "Quote Request Received!", description: "We'll email your personalized quote shortly." });
+    } catch (err: any) {
+      toast({ title: "Submission error", description: err.message || "Try again.", variant: "destructive" });
+    }
   };
 
   return (
@@ -157,18 +158,33 @@ const QuoteForm = () => {
 
                   <div>
                     <label htmlFor="zipCode" className="block text-sm font-medium mb-1">
-                      Your ZIP Code
+                      Your Postcode
                     </label>
                     <input
                       id="zipCode"
                       type="text"
                       value={zipCode}
                       onChange={(e) => setZipCode(e.target.value)}
-                      placeholder="e.g., 90210"
+                      placeholder="e.g., SW1A 1AA"
                       className="input-field"
                       required
-                      maxLength={5}
+                      maxLength={8}
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="ownerName" className="block text-sm font-medium mb-1">Your Name</label>
+                      <input id="ownerName" type="text" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} className="input-field" required />
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+                      <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-field" required />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="phone" className="block text-sm font-medium mb-1">Phone (optional)</label>
+                      <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="input-field" />
+                    </div>
                   </div>
                 </div>
 
